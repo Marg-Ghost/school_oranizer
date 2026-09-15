@@ -34,6 +34,8 @@ void save_all_tasks(Task *all_tasks, int total);
 
 void init_desktop();
 
+void enable_input_echo(void);
+void disable_input_echo(void);
 
 int main() {
     struct termios orig;
@@ -57,19 +59,20 @@ void init_desktop() {
     int selected_folder = 0;
 
     while (1) {
-        printf("Gefundene Aufgaben insgesamt: %d\n", total);
-        printf("-----------------------------------");
-        printf("Sorted by: %s\n", sorted[sorted_selected]);
-        printf("-----------------------------------");
+        fprintf(stderr,"\033[H\033[J");
+        fprintf(stderr,"Gefundene Aufgaben insgesamt: %d\n", total);
+        fprintf(stderr,"-----------------------------------\n");
+        fprintf(stderr,"Sorted by: %s\n", sorted[sorted_selected]);
+        fprintf(stderr,"-----------------------------------\n");
         for (int i = 0; i < total; i++) {
             if (i == selected_folder) {         // "\033[7m %s \033[0m\n
-                printf(" -> \033[7m[%s] %s (Bis: %s) - %s\033[0m\n",
+                fprintf(stderr," -> \033[7m[%s] %s (Bis: %s) - %s\033[0m\n",
                     all_tasks[i].done ? "X" : " ",
                     all_tasks[i].subject,
                     all_tasks[i].deadline,
                     all_tasks[i].content);
             }else{
-                printf("[%s] %s (Bis: %s) - %s\n",
+                fprintf(stderr,"[%s] %s (Bis: %s) - %s\n",
                     all_tasks[i].done ? "X" : " ",
                     all_tasks[i].subject,
                     all_tasks[i].deadline,
@@ -275,27 +278,45 @@ Task* get_all_tasks(int *total_count) {
     return all_tasks;
 }
 
+void enable_input_echo(void) {
+    struct termios t;
+    tcgetattr(STDIN_FILENO, &t);
+    t.c_lflag |= (ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &t);
+}
+
+void disable_input_echo(void) {
+    struct termios t;
+    tcgetattr(STDIN_FILENO, &t);
+    t.c_lflag &= ~(ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &t);
+}
+
 void append_task(Task **all_tasks, int *total) {
     int new_index = *total;
     Task *tmp = realloc(*all_tasks, sizeof(Task) * (*total + 1));
     if (!tmp) return;
     *all_tasks = tmp;
 
-    printf("subject: ");
+    enable_input_echo();
+
+    printf("subject: \n");
     fgets((*all_tasks)[new_index].subject, sizeof((*all_tasks)[new_index].subject), stdin);
     (*all_tasks)[new_index].subject[strcspn((*all_tasks)[new_index].subject, "\n")] = '\0';
 
-    printf("date: ");
+    printf("date: \n");
     fgets((*all_tasks)[new_index].date, sizeof((*all_tasks)[new_index].date), stdin);
     (*all_tasks)[new_index].date[strcspn((*all_tasks)[new_index].date, "\n")] = '\0';
 
-    printf("deadline: ");
+    printf("deadline: \n");
     fgets((*all_tasks)[new_index].deadline, sizeof((*all_tasks)[new_index].deadline), stdin);
     (*all_tasks)[new_index].deadline[strcspn((*all_tasks)[new_index].deadline, "\n")] = '\0';
 
-    printf("content: ");
+    printf("content: \n");
     fgets((*all_tasks)[new_index].content, sizeof((*all_tasks)[new_index].content), stdin);
     (*all_tasks)[new_index].content[strcspn((*all_tasks)[new_index].content, "\n")] = '\0';
+
+    disable_input_echo();
 
     (*all_tasks)[new_index].id = new_index;
     (*all_tasks)[new_index].done = 0;
@@ -311,6 +332,8 @@ void delete_task(Task *all_tasks, int *total, int del) {
 }
 
 void edit_task(Task **all_tasks, int *total, int edit_file) {
+    enable_input_echo();
+
     char z[100];
     printf("edit (date/deadline/content): ");
     fgets(z, sizeof(z), stdin);
@@ -329,6 +352,8 @@ void edit_task(Task **all_tasks, int *total, int edit_file) {
         fgets((*all_tasks)[edit_file].content, sizeof((*all_tasks)[edit_file].content), stdin);
         (*all_tasks)[edit_file].content[strcspn((*all_tasks)[edit_file].content, "\n")] = '\0';
     }
+
+    disable_input_echo();
 }
 
 void mark_as_x(Task *all_tasks, int *total, int edit_file) {
@@ -346,8 +371,6 @@ int cmp_deadline(const void *a, const void *b) {
     return strcmp(((Task*)a)->deadline, ((Task*)b)->deadline);
 }
 
-// Ordnet ein Task.subject-Feld einem der 7 Fach-Codes zu
-// WICHTIG: an deine tatsächlichen subject-Strings in den JSONs anpassen, falls sie anders lauten!
 int subject_matches_code(const char *subject, char code) {
     switch (code) {
         case 'm': return strcmp(subject, "mathe") == 0;
