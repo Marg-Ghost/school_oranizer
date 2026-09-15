@@ -292,6 +292,11 @@ void disable_input_echo(void) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &t);
 }
 
+void flush_stdin_line(void) {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF) {}
+}
+
 void append_task(Task **all_tasks, int *total) {
     int new_index = *total;
     Task *tmp = realloc(*all_tasks, sizeof(Task) * (*total + 1));
@@ -302,18 +307,22 @@ void append_task(Task **all_tasks, int *total) {
 
     printf("subject: \n");
     fgets((*all_tasks)[new_index].subject, sizeof((*all_tasks)[new_index].subject), stdin);
+    flush_stdin_line();
     (*all_tasks)[new_index].subject[strcspn((*all_tasks)[new_index].subject, "\n")] = '\0';
 
     printf("date: \n");
     fgets((*all_tasks)[new_index].date, sizeof((*all_tasks)[new_index].date), stdin);
+    flush_stdin_line();
     (*all_tasks)[new_index].date[strcspn((*all_tasks)[new_index].date, "\n")] = '\0';
 
     printf("deadline: \n");
     fgets((*all_tasks)[new_index].deadline, sizeof((*all_tasks)[new_index].deadline), stdin);
+    flush_stdin_line();
     (*all_tasks)[new_index].deadline[strcspn((*all_tasks)[new_index].deadline, "\n")] = '\0';
 
     printf("content: \n");
     fgets((*all_tasks)[new_index].content, sizeof((*all_tasks)[new_index].content), stdin);
+    flush_stdin_line();
     (*all_tasks)[new_index].content[strcspn((*all_tasks)[new_index].content, "\n")] = '\0';
 
     disable_input_echo();
@@ -335,21 +344,30 @@ void edit_task(Task **all_tasks, int *total, int edit_file) {
     enable_input_echo();
 
     char z[100];
-    printf("edit (date/deadline/content): ");
+    printf("edit (subject/date/deadline/content): ");
     fgets(z, sizeof(z), stdin);
+    flush_stdin_line();
     z[strcspn(z, "\n")] = '\0';
 
-    if (strcmp(z, "date") == 0) {
+    if (strcmp(z, "subject") == 0) {
+        printf("subject: ");
+        fgets((*all_tasks)[edit_file].subject, sizeof((*all_tasks)[edit_file].subject), stdin);
+        flush_stdin_line();
+        (*all_tasks)[edit_file].subject[strcspn((*all_tasks)[edit_file].subject, "\n")] = '\0';
+    }else if (strcmp(z, "date") == 0) {
         printf("date: ");
         fgets((*all_tasks)[edit_file].date, sizeof((*all_tasks)[edit_file].date), stdin);
+        flush_stdin_line();
         (*all_tasks)[edit_file].date[strcspn((*all_tasks)[edit_file].date, "\n")] = '\0';
     }else if (strcmp(z, "deadline") == 0) {
         printf("deadline: ");
         fgets((*all_tasks)[edit_file].deadline, sizeof((*all_tasks)[edit_file].deadline), stdin);
+        flush_stdin_line();
         (*all_tasks)[edit_file].deadline[strcspn((*all_tasks)[edit_file].deadline, "\n")] = '\0';
     }else if (strcmp(z, "content") == 0) {
         printf("content: ");
         fgets((*all_tasks)[edit_file].content, sizeof((*all_tasks)[edit_file].content), stdin);
+        flush_stdin_line();
         (*all_tasks)[edit_file].content[strcspn((*all_tasks)[edit_file].content, "\n")] = '\0';
     }
 
