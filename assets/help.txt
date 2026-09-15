@@ -1,0 +1,10 @@
+1 = Help
+2 = change sorted
+Arrow up = TAsk above
+Arrow down = Task below
+Q = quit
+
+A = Add Task
+X = Löschen
+E = erledigt
+I = edit info
