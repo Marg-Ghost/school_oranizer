@@ -1,10 +1,89 @@
-1 = Help
-2 = change sorted
-Arrow up = TAsk above
-Arrow down = Task below
-Q = quit
+CLI ORGANIZER - HILFE
+=====================
 
-A = Add Task
-X = Löschen
-E = erledigt
-I = edit info
+MENUS
+-----
+Pfeil hoch       Auswahl nach oben bewegen
+Pfeil runter     Auswahl nach unten bewegen
+Enter            Auswahl bestaetigen
+q                Aktuelles Menue verlassen
+1                Diese Hilfe oeffnen/schliessen
+
+STARTMENUE
+----------
+Homework         Hausaufgaben anzeigen, anlegen, bearbeiten oder loeschen
+Tests            Tests anzeigen, anlegen, bewerten, bearbeiten oder loeschen
+Grades           Noten anzeigen, sortieren oder eine Note anlegen
+Beenden          Programm verlassen
+
+HOMEWORK
+--------
+Homework anzeigen/sortieren
+	Zeigt alle Hausaufgaben als Tabelle.
+	Sortierspalten: id, subject, date, deadline, content, done
+Homework anlegen
+	id, Fach, Datum, Deadline, Inhalt, Erledigt (0/1)
+Homework bearbeiten
+	ID, Spalte, neuer Wert
+	Erlaubte Spalten: subject, date, deadline, content, done
+Homework loeschen
+	ID der Hausaufgabe
+
+TESTS
+-----
+Tests anzeigen/sortieren
+	Zeigt alle Tests inklusive done und grade als Tabelle.
+	Sortierspalten: id, subject, date, content, impact, done, grade
+Test anlegen
+	id, Fach, Datum, Inhalt, Auswirkung
+	Auswirkung ist eine freie Angabe, zum Beispiel muendlich, schriftlich,
+	hoch, mittel oder niedrig.
+Testnote eintragen
+	Test-ID, Notentyp (oral oder written), Testnote
+	Die Note wird gespeichert und der Test wird automatisch erledigt.
+Test bearbeiten
+	ID, Spalte, neuer Wert
+	Erlaubte Spalten: subject, date, content, impact, done, grade
+Test loeschen
+	ID des Tests
+
+GRADES
+------
+Noten anzeigen/sortieren
+	Zeigt pro Fach oral_avg, written_avg und general.
+	Sortierspalten: subject, oral_avg, written_avg, general
+Note anlegen
+	Fach, muendliche Note, schriftliche Note
+	Leere Noten werden nicht als Eintrag gespeichert.
+	general wird automatisch berechnet.
+
+ANZEIGEN UND SORTIEREN
+----------------------
+Beim Anzeigen wird nach einer Spalte gefragt.
+Leer lassen       Standardsortierung verwenden
+Spaltenname       Nach dieser Spalte sortieren
+j                 Absteigend sortieren
+n                 Aufsteigend sortieren
+
+BEWERTEN
+--------
+Testnote eintragen fragt nach:
+Test-ID           ID des Tests
+Notentyp          oral oder written
+Testnote          Die Note als Zahl, zum Beispiel 2 oder 1.5
+
+Eine Testnote wird automatisch als erledigt markiert.
+Sie wird dem Fach als einzelne Note hinzugefuegt.
+Mehrere Noten desselben Fachs bleiben als Historie erhalten.
+
+NOTENBERECHNUNG
+---------------
+oral_avg          Durchschnitt aller muendlichen Noten
+written_avg       Durchschnitt aller schriftlichen Noten
+general           (oral_avg + written_avg * 2) / 3
+
+TECHNIK
+-------
+Der Server muss auf Port 4301 laufen.
+Der C-Viewer greift ueber HTTP auf den Server zu.
+Die Datenbank wird nur vom Server angesprochen.

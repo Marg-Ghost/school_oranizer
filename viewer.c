@@ -15,6 +15,7 @@
 #define BUFFER_SIZE 4096
 
 static void print_icon(void);
+static void show_help(void);
 
 static void read_line(const char *prompt, char *buffer, size_t size) {
     printf("%s", prompt);
@@ -88,6 +89,8 @@ static int select_menu(const char *title, const char **options, int count) {
             selected = (selected + 1) % count;
         else if (key == '\r' || key == '\n')
             break;
+        else if (key == '1')
+            show_help();
         else if (key == 'q' || key == 'Q') {
 #ifndef _WIN32
             set_raw_mode(0);
@@ -113,6 +116,22 @@ static void print_icon(void) {
     if (file == NULL) return;
     while (fgets(line, sizeof(line), file) != NULL) fputs(line, stdout);
     fclose(file);
+}
+
+static void show_help(void) {
+    FILE *file = fopen("assets/help.txt", "r");
+    char line[256];
+
+    printf("\033[2J\033[H");
+    if (file == NULL) {
+        printf("Hilfe konnte nicht geoeffnet werden.\n");
+    } else {
+        while (fgets(line, sizeof(line), file) != NULL) fputs(line, stdout);
+        fclose(file);
+    }
+    printf("\nDruecke 1 erneut, um zurueckzukehren.\n");
+    fflush(stdout);
+    while (read_menu_key() != '1') {}
 }
 
 static void request(const char *method, const char *path, const char *body) {
@@ -217,12 +236,16 @@ static void add_grade(void) {
 }
 
 static void grade_test(void) {
-    char id[64], grade[32], path[128], body[64];
+    char id[64], grade[32], grade_type[16], path[128], body[128];
 
     read_line("Test-ID: ", id, sizeof(id));
+    read_line("Notentyp (oral/written): ", grade_type, sizeof(grade_type));
     read_line("Testnote: ", grade, sizeof(grade));
     snprintf(path, sizeof(path), "/tests/%s/grade", id);
-    snprintf(body, sizeof(body), "{\"grade\":\"%s\"}", grade);
+    snprintf(
+        body, sizeof(body), "{\"grade\":\"%s\",\"type\":\"%s\"}",
+        grade, grade_type
+    );
     request("POST", path, body);
 }
 

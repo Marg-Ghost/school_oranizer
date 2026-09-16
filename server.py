@@ -83,7 +83,10 @@ def grade_test(test_id: str, values: dict[str, Any]) -> dict[str, Any]:
 	if "grade" not in values:
 		raise HTTPException(status_code=400, detail="Das Feld grade fehlt")
 	try:
-		return interact_db.record_test_grade(test_id, str(values["grade"]))
+		grade_type = str(values.get("type", "written"))
+		return interact_db.record_test_grade(
+			test_id, str(values["grade"]), grade_type
+		)
 	except KeyError as error:
 		raise HTTPException(status_code=404, detail=str(error)) from error
 	except ValueError as error:

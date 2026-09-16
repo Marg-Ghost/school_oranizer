@@ -91,7 +91,7 @@ def _table_columns(connection: sqlite3.Connection, table_name: str) -> list[str]
 def list_tables() -> list[str]:
 	with _connection() as connection:
 		rows = connection.execute(
-			"SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN ('grade_entries', 'schema_meta') ORDER BY name"
+			"SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN ('grade_entries', 'schema_meta', 'sqlite_sequence') ORDER BY name"
 		).fetchall()
 	return [row[0] for row in rows]
 
@@ -246,7 +246,11 @@ def delete_row(table_name: str, row_id: str) -> None:
 			raise KeyError(f"Kein Datensatz mit id {row_id}")
 
 
-def record_test_grade(test_id: str, grade: str) -> dict[str, Any]:
+def record_test_grade(
+	test_id: str, grade: str, grade_type: str = "written"
+) -> dict[str, Any]:
+	if grade_type not in {"oral", "written"}:
+		raise ValueError("Der Notentyp muss oral oder written sein")
 	test_grade = _number(grade)
 	if test_grade is None:
 		raise ValueError("Die Testnote muss eine Zahl sein")
@@ -264,18 +268,18 @@ def record_test_grade(test_id: str, grade: str) -> dict[str, Any]:
 		)
 		subject = test["subject"]
 		previous_grade = connection.execute(
-			'SELECT "id" FROM "grade_entries" WHERE "type" = "written" AND "source_id" = ?',
+			'SELECT "id" FROM "grade_entries" WHERE "source_id" = ?',
 			(test_id,),
 		).fetchone()
 		if previous_grade is None:
 			connection.execute(
 				'INSERT INTO "grade_entries" ("subject", "type", "value", "source_id") VALUES (?, ?, ?, ?)',
-				(subject, "written", test_grade, test_id),
+				(subject, grade_type, test_grade, test_id),
 			)
 		else:
 			connection.execute(
-				'UPDATE "grade_entries" SET "value" = ?, "subject" = ? WHERE "id" = ?',
-				(test_grade, subject, previous_grade["id"]),
+				'UPDATE "grade_entries" SET "value" = ?, "type" = ?, "subject" = ? WHERE "id" = ?',
+				(test_grade, grade_type, subject, previous_grade["id"]),
 			)
 		connection.commit()
 		updated_test = connection.execute(
