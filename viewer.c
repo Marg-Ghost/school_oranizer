@@ -11,7 +11,7 @@
 #include <unistd.h>
 #endif
 
-#define API_URL "http://127.0.0.1:8000"
+#define API_URL "http://127.0.0.1:4301"
 #define BUFFER_SIZE 4096
 
 static void print_icon(void);
