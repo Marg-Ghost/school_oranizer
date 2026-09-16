@@ -151,9 +151,18 @@ static void show_tables(void) {
 }
 
 static void show_table(const char *table) {
-    char path[128];
+    char sort_by[64], direction[8], path[192];
 
-    snprintf(path, sizeof(path), "/tables/%s", table);
+    read_line("Sortieren nach (leer = Standardsortierung): ", sort_by, sizeof(sort_by));
+    if (sort_by[0] == '\0') {
+        snprintf(path, sizeof(path), "/tables/%s/view", table);
+    } else {
+        read_line("Absteigend? (j/n): ", direction, sizeof(direction));
+        snprintf(
+            path, sizeof(path), "/tables/%s/view?sort_by=%s&desc=%s",
+            table, sort_by, (direction[0] == 'j' || direction[0] == 'J') ? "true" : "false"
+        );
+    }
     request("GET", path, NULL);
 }
 
@@ -238,7 +247,7 @@ static void delete_row(const char *table) {
 
 static void run_homework_menu(void) {
     const char *options[] = {
-        "Homework anzeigen", "Homework anlegen", "Homework bearbeiten",
+        "Homework anzeigen/sortieren", "Homework anlegen", "Homework bearbeiten",
         "Homework löschen", "Zurück"
     };
     int choice;
@@ -256,7 +265,7 @@ static void run_homework_menu(void) {
 
 static void run_test_menu(void) {
     const char *options[] = {
-        "Tests anzeigen", "Test anlegen", "Testnote eintragen",
+        "Tests anzeigen/sortieren", "Test anlegen", "Testnote eintragen",
         "Test bearbeiten", "Test löschen", "Zurück"
     };
     int choice;
@@ -274,7 +283,7 @@ static void run_test_menu(void) {
 }
 
 static void run_grade_menu(void) {
-    const char *options[] = {"Noten anzeigen", "Note anlegen", "Zurück"};
+    const char *options[] = {"Noten anzeigen/sortieren", "Note anlegen", "Zurück"};
     int choice;
 
     for (;;) {

@@ -2,6 +2,7 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 
 import data.interact_db as interact_db
 
@@ -14,11 +15,37 @@ def tables() -> list[str]:
 
 
 @app.get("/tables/{table_name}")
-def rows(table_name: str) -> list[dict[str, Any]]:
+def rows(
+	table_name: str, sort_by: str | None = None, desc: bool = False
+) -> list[dict[str, Any]]:
 	try:
-		return interact_db.get_rows(table_name)
+		return interact_db.get_rows(table_name, sort_by=sort_by, desc=desc)
 	except ValueError as error:
-		raise HTTPException(status_code=404, detail=str(error)) from error
+		raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@app.get("/tables/{table_name}/view", response_class=PlainTextResponse)
+def table_view(
+	table_name: str, sort_by: str | None = None, desc: bool = False
+) -> str:
+	try:
+		rows = interact_db.get_rows(table_name, sort_by=sort_by, desc=desc)
+	except ValueError as error:
+		raise HTTPException(status_code=400, detail=str(error)) from error
+	if not rows:
+		return "Keine Einträge vorhanden."
+
+	columns = list(rows[0])
+	widths = {
+		column: max(len(column), *(len(str(row.get(column, ""))) for row in rows))
+		for column in columns
+	}
+	header = " | ".join(column.ljust(widths[column]) for column in columns)
+	separator = "-+-".join("-" * widths[column] for column in columns)
+	lines = [header, separator]
+	for row in rows:
+		lines.append(" | ".join(str(row.get(column, "")).ljust(widths[column]) for column in columns))
+	return "\n".join(lines)
 
 
 @app.post("/tables/{table_name}", status_code=201)
