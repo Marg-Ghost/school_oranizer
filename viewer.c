@@ -67,8 +67,12 @@ static int select_menu(const char *title, const char **options, int count) {
 #endif
     for (;;) {
         printf("\033[2J\033[H");
-        if (strcmp(title, "marg ghost") == 0) print_icon();
-        printf("%s\n\n", title);
+        if (strcmp(title, "marg ghost") == 0) {
+            print_icon();
+            printf("\n");
+        } else {
+            printf("%s\n\n", title);
+        }
         for (int index = 0; index < count; index++) {
             if (index == selected)
                 printf("\033[7m> %s\033[0m\n", options[index]);
