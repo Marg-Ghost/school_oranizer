@@ -1,5 +1,6 @@
 from typing import Any
 
+import uvicorn
 from fastapi import FastAPI, HTTPException
 
 import data.interact_db as interact_db
@@ -60,3 +61,7 @@ def grade_test(test_id: str, values: dict[str, Any]) -> dict[str, Any]:
 		raise HTTPException(status_code=404, detail=str(error)) from error
 	except ValueError as error:
 		raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+if __name__ == "__main__":
+	uvicorn.run(app, host="0.0.0.0", port=4301)
